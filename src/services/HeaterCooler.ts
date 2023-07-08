@@ -7,17 +7,17 @@ import {
 } from 'homebridge';
 
 import getStatus, { GetStatusFunc } from '../utils/acStatus';
-import readData, { ReadDataFunc } from '../utils/dhtSensor';
 import sendData, { SendDataFunc } from '../utils/acSender';
 import { Platform } from '../platform';
 
 export default class HeaterCooler {
+  private currentTemp = 45;
+
   private readonly service: Service;
 
   public readonly activeChar: Characteristic;
 
   public readonly eventEmitter: EventEmitter;
-  private readonly readDHTData: ReadDataFunc;
   private readonly getStatus: GetStatusFunc;
   private readonly sendData: SendDataFunc;
 
@@ -39,10 +39,6 @@ export default class HeaterCooler {
 
     this.getStatus = getStatus(this.accessory.context.device);
     this.sendData = sendData(this.accessory.context.device);
-    this.readDHTData = readData(
-      this.accessory.context.device,
-      this.platform.config as any
-    );
 
     this.activeChar = this.service
       .getCharacteristic(this.platform.Characteristic.Active)
@@ -133,12 +129,12 @@ export default class HeaterCooler {
   }
 
   private async handleCurrentTemperatureGet() {
-    let temp = this.platform.config.defaultCurrentTemp ?? 45;
-    if (this.platform.config.dhtService) {
-      temp = (await this.readDHTData())?.temperature ?? temp;
-    }
+    // let temp = this.platform.config.defaultCurrentTemp ?? 45;
+    // // if (this.platform.config.dhtService) {
+    // //   temp = (await this.readDHTData())?.temperature ?? temp;
+    // // }
 
-    return temp;
+    return this.currentTemp;
   }
 
   private async handleThresholdTemperatureGet() {
@@ -195,4 +191,12 @@ export default class HeaterCooler {
   private handleTemperatureDisplayUnitsSet() {
     return undefined;
   }
+
+  updateCurrentTemp(value: number) {
+    this.currentTemp = value;
+    this.service
+      .getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+      .updateValue(this.currentTemp);
+  }
+
 }

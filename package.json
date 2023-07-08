@@ -1,16 +1,16 @@
 {
   "private": false,
-  "displayName": "Gree AC Implementation Plugin",
-  "name": "homebridge-gree-ac-platform",
-  "version": "1.2.1",
-  "description": "Implements the Gree AC API",
-  "license": "Apache-2.0",
+  "displayName": "Homebridge Cooper&Hunter (Gree) AC Platform With WebHooks",
+  "name": "@petro-kushchak/homebridge-ch-gree-ac-eve-platform",
+  "version": "1.0.8",
+  "description": "Cooper&Hunter (based on Gree AC API) AC plugin for Homebridge (Homekit) with Web Hook Data Sharing",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/RaresAil/homebridge-gree-ac.git"
+    "url": "git://github.com/petro-kushchak/homebridge-ch-ac-eve-platform.git"
   },
   "bugs": {
-    "url": "https://github.com/RaresAil/homebridge-gree-ac/issues"
+    "url": "git://github.com/petro-kushchak/homebridge-ch-ac-eve-platform/issues"
   },
   "engines": {
     "node": ">=16.0.0",
@@ -24,11 +24,16 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "cooper&hunter ac",
+    "homebridge heatercooler",
+    "eve",
+    "fakegato"
   ],
   "dependencies": {
     "gree-ac-api": "^1.1.2",
-    "node-fetch": "cjs"
+    "node-fetch": "cjs",
+    "fakegato-history": "^0.6.2"
   },
   "resolutions": {
     "minimist": "^1.2.6",
