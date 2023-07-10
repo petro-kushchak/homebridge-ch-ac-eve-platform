@@ -14,7 +14,7 @@ import { Device, DeviceFinder } from 'gree-ac-api';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import ACContext from './@types/ACContext';
 import { PlatformAC } from './PlatformAC';
-import { AutomationReturn, HttpService } from './services/httpService';
+import { AutomationReturn, HttpService } from './services/HttpService';
 
 export class Platform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
