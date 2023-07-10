@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "Homebridge Cooper&Hunter (Gree) AC Platform With WebHooks",
   "name": "@petro-kushchak/homebridge-ch-gree-ac-eve-platform",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Cooper&Hunter (based on Gree AC API) AC plugin for Homebridge (Homekit) with Web Hook Data Sharing",
   "license": "MIT",
   "repository": {
