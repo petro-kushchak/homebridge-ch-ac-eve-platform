@@ -33,7 +33,8 @@
   "dependencies": {
     "gree-ac-api": "^1.1.2",
     "node-fetch": "cjs",
-    "fakegato-history": "^0.6.2"
+    "fakegato-history": "^0.6.2",
+    "mqtt": "^5.3.4"
   },
   "resolutions": {
     "minimist": "^1.2.6",

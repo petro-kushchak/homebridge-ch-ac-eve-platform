@@ -8,6 +8,9 @@ import {
   Characteristic
 } from 'homebridge';
 
+import mqtt from 'mqtt';
+import * as fs from 'fs';
+
 import { DeviceFullInfo, DevicePackInfo } from 'gree-ac-api/lib/@types';
 import { Device, DeviceFinder } from 'gree-ac-api';
 
@@ -15,6 +18,8 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import ACContext from './@types/ACContext';
 import { PlatformAC } from './PlatformAC';
 import { AutomationReturn, HttpService } from './services/HttpService';
+import { isPluginConfiguration, PluginConfiguration } from './configModel';
+import { BasicLogger, errorToString } from './logger';
 
 export class Platform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -23,13 +28,22 @@ export class Platform implements DynamicPlatformPlugin {
 
   public readonly accessories: PlatformAccessory<ACContext>[] = [];
   private readonly registeredDevices: PlatformAC[] = [];
-  private readonly httpService: HttpService;
+  private httpService?: HttpService;
+  private readonly mqttClient?: mqtt.MqttClient;
 
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
     public readonly api: API
   ) {
+    // Validate configuration
+    if (isPluginConfiguration(config, this.log)) {
+      this.config = config;
+    } else {
+      this.log.error(`INVALID CONFIGURATION FOR PLUGIN: ${PLUGIN_NAME}\nThis plugin will NOT WORK until this problem is resolved.`);
+      return;
+    }
+
     DeviceFinder.on('device-updated', this.onDeviceUpdated.bind(this));
     DeviceFinder.on('device-found', this.onDeviceFound.bind(this));
 
@@ -39,8 +53,14 @@ export class Platform implements DynamicPlatformPlugin {
       DeviceFinder.scan(this.config.broadcastAddress, 0);
     });
 
-    this.httpService = new HttpService(this.config.httpPort as number, this.log);
-    this.httpService.start((uri: string) => this.httpHandler(uri));
+    if (this.config.httpPort > 0) {
+      this.httpService = new HttpService(this.config.httpPort, this.log);
+      this.httpService.start((uri: string) => this.httpHandler(uri));
+    }
+
+    if(this.config.mqtt) {
+      this.mqttClient = this.initializeMqttClient(this.config as PluginConfiguration);
+    }
   }
 
   httpHandler(uri: string): AutomationReturn {
@@ -119,7 +139,7 @@ export class Platform implements DynamicPlatformPlugin {
     );
 
     if (!existingAccessory) {
-      const deviceName = device.Name? device.Name : device.FullInfo.mac;
+      const deviceName = device.Name ? device.Name : device.FullInfo.mac;
       this.log.info('Adding new accessory:', deviceName);
       const accessory = new this.api.platformAccessory<ACContext>(
         deviceName,
@@ -157,4 +177,98 @@ export class Platform implements DynamicPlatformPlugin {
       this.api.updatePlatformAccessories([device.updateDevice(newDevice)]);
     }
   }
+
+  private initializeMqttClient(config: PluginConfiguration): mqtt.MqttClient {
+    if (!config.mqtt!.server || !config.mqtt!.base_topic) {
+      this.log.error('No MQTT server and/or base_topic defined!');
+    }
+    this.log.info(`Connecting to MQTT server at ${config.mqtt!.server}`);
+
+    const options: mqtt.IClientOptions = Platform.createMqttOptions(this.log, config);
+
+    const mqttClient = mqtt.connect(config.mqtt!.server, options);
+    mqttClient.on('connect', this.onMqttConnected.bind(this));
+    mqttClient.on('close', this.onMqttClose.bind(this));
+
+    this.api.on('didFinishLaunching', () => {
+      if (this.config !== undefined) {
+        // Setup MQTT callbacks and subscription
+        this.mqttClient?.on('message', this.onMessage);
+        this.mqttClient?.subscribe(this.config.mqtt.base_topic + '/#');
+      }
+    });
+
+    return mqttClient;
+  }
+
+  private onMqttConnected(): void {
+    this.log.info('Connected to MQTT server');
+  }
+
+  private onMqttClose(): void {
+    this.log.error('Disconnected from MQTT server!');
+  }
+
+  // eslint-disable-next-line sonarjs/cognitive-complexity
+  private onMessage(topic: string, payload: Buffer) {
+    const fullTopic = topic;
+    try {
+      const baseTopic = `${this.config?.mqtt.base_topic}/`;
+      if (!topic.startsWith(baseTopic)) {
+        this.log.debug('Ignore message, because topic is unexpected.', topic);
+        return;
+      }
+      const info = JSON.parse(payload.toString());
+
+      this.log.info(`Received MQTT message '${info}'  on topic: {${fullTopic}}`);
+
+    } catch (err) {
+      this.log.error(`Failed to process MQTT message on '${fullTopic}'. (Maybe check the MQTT version?)`);
+      this.log.error(errorToString(err));
+    }
+  }
+
+
+  private static createMqttOptions(log: BasicLogger, config: PluginConfiguration): mqtt.IClientOptions {
+    const options: mqtt.IClientOptions = {};
+    if (config.mqtt!.version) {
+      options.protocolVersion = config.mqtt!.version;
+    }
+
+    if (config.mqtt!.keepalive) {
+      log.debug(`Using MQTT keepalive: ${config.mqtt!.keepalive}`);
+      options.keepalive = config.mqtt!.keepalive;
+    }
+
+    if (config.mqtt!.ca) {
+      log.debug(`MQTT SSL/TLS: Path to CA certificate = ${config.mqtt!.ca}`);
+      options.ca = fs.readFileSync(config.mqtt!.ca);
+    }
+
+    if (config.mqtt!.key && config.mqtt!.cert) {
+      log.debug(`MQTT SSL/TLS: Path to client key = ${config.mqtt!.key}`);
+      log.debug(`MQTT SSL/TLS: Path to client certificate = ${config.mqtt!.cert}`);
+      options.key = fs.readFileSync(config.mqtt!.key);
+      options.cert = fs.readFileSync(config.mqtt!.cert);
+    }
+
+    if (config.mqtt!.user && config.mqtt!.password) {
+      options.username = config.mqtt!.user;
+      options.password = config.mqtt!.password;
+    }
+
+    if (config.mqtt!.client_id) {
+      log.debug(`Using MQTT client ID: '${config.mqtt!.client_id}'`);
+      options.clientId = config.mqtt!.client_id;
+    }
+
+    if (config.mqtt!.reject_unauthorized !== undefined && !config.mqtt!.reject_unauthorized) {
+      log.debug('MQTT reject_unauthorized set false, ignoring certificate warnings.');
+      options.rejectUnauthorized = false;
+    }
+
+    return options;
+  }
+
+
 }
