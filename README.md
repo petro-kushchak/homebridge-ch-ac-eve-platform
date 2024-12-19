@@ -43,7 +43,13 @@ This plugin automatically detects Gree AC's and add them as accessories with the
       "mqtt": {
           "base_topic": "zigbee2mqtt",
           "server": "mqtt://localhost:1883"
-      }
+      },
+      "devices": [
+        {
+          "id":"device-id",
+          "sensorTopic": "zigbee2mqtt/0x00158d0001f0b1d1"
+        }
+      ]
     }
   ]
 }

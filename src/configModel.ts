@@ -3,6 +3,7 @@ import { BasicLogger } from './logger';
 
 export interface PluginConfiguration extends PlatformConfig {
     mqtt?: MqttConfiguration;
+    devices?: DeviceConfiguration[];
 
     httpPort?: number;
     broadcastAddress: string;
@@ -14,7 +15,19 @@ export interface PluginConfiguration extends PlatformConfig {
     heatingMaxTemp: number;
 }
 
+export interface DeviceConfiguration extends Record<string, unknown> {
+    id: string;
+    sensorTopic: string;
+}
 
+
+export interface MqttSensor {
+    battery: number;
+    humidity: number;
+    last_seen?: string;
+    linkquality?: number;
+    temperature?: number;
+}
 
 export const isPluginConfiguration = (
     x: PlatformConfig,
@@ -54,9 +67,46 @@ export const isPluginConfiguration = (
         return false;
     }
 
+    if (x.devices !== undefined) {
+        return hasValidDeviceConfigurations(x.devices, logger);
+    }
+
     return true;
 };
 
+
+function hasValidDeviceConfigurations(
+    devices: unknown,
+    logger: BasicLogger | undefined
+): boolean {
+    if (devices !== undefined) {
+        if (!Array.isArray(devices)) {
+            logger?.error('Incorrect configuration: devices must be an array');
+            return false;
+        }
+        for (const element of devices) {
+            if (!isDeviceConfiguration(element)) {
+                logger?.error('Incorrect configuration: Entry for device is not correct: ' + JSON.stringify(element));
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+export const isDeviceConfiguration = (x: DeviceConfiguration): boolean => {
+    // Required id property
+    if (x.id === undefined || typeof x.id !== 'string' || x.id.length < 1) {
+        return false;
+    }
+
+    // Required sensorTopic property
+    if (x.sensorTopic === undefined || typeof x.sensorTopic !== 'string' || x.sensorTopic.length < 1) {
+        return false;
+    }
+    return true;
+}
 
 
 export interface MqttConfiguration extends Record<string, unknown> {
@@ -81,3 +131,11 @@ export const isMqttConfiguration = (x: any): x is MqttConfiguration =>
     x.server !== undefined &&
     typeof x.server === 'string' &&
     x.server.length > 0;
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const isMqttSensor = (x: any): x is MqttSensor =>
+    x.temperature !== undefined &&
+    typeof x.temperature === 'number' &&
+    x.humidity !== undefined &&
+    typeof x.humidity === 'number';

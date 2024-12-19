@@ -143,6 +143,29 @@
           }
         }
       },
+      "devices": {
+        "title": "Devices",
+        "type": "array",
+        "required": false,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "title": "AC device mac",
+              "type": "string",
+              "required": true,
+              "minLength": 3,
+              "placeholder": "0x1234567890abcdef"
+            },
+            "sensorTopic": {
+              "title": "MQTT sensor topic",
+              "type": "string",
+              "required": true,
+              "placeholder": "zigbee2mqtt/0x00158d0001f0b1d1"
+            }
+          }
+        }
+      }
     }
   }
 }

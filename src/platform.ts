@@ -18,7 +18,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import ACContext from './@types/ACContext';
 import { PlatformAC } from './PlatformAC';
 import { AutomationReturn, HttpService } from './services/HttpService';
-import { isPluginConfiguration, PluginConfiguration } from './configModel';
+import { DeviceConfiguration, isMqttSensor, isPluginConfiguration, MqttSensor, PluginConfiguration } from './configModel';
 import { BasicLogger, errorToString } from './logger';
 
 export class Platform implements DynamicPlatformPlugin {
@@ -30,6 +30,10 @@ export class Platform implements DynamicPlatformPlugin {
   private readonly registeredDevices: PlatformAC[] = [];
   private httpService?: HttpService;
   private readonly mqttClient?: mqtt.MqttClient;
+
+  get devices(): DeviceConfiguration[] {
+    return this.config.devices;
+  }
 
   constructor(
     public readonly log: Logger,
@@ -58,7 +62,7 @@ export class Platform implements DynamicPlatformPlugin {
       this.httpService.start((uri: string) => this.httpHandler(uri));
     }
 
-    if(this.config.mqtt) {
+    if (this.config.mqtt) {
       this.mqttClient = this.initializeMqttClient(this.config as PluginConfiguration);
     }
   }
@@ -193,7 +197,7 @@ export class Platform implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', () => {
       if (this.config !== undefined) {
         // Setup MQTT callbacks and subscription
-        this.mqttClient?.on('message', this.onMessage);
+        this.mqttClient?.on('message', this.onMessage.bind(this));
         this.mqttClient?.subscribe(this.config.mqtt.base_topic + '/#');
       }
     });
@@ -209,7 +213,6 @@ export class Platform implements DynamicPlatformPlugin {
     this.log.error('Disconnected from MQTT server!');
   }
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   private onMessage(topic: string, payload: Buffer) {
     const fullTopic = topic;
     try {
@@ -218,9 +221,40 @@ export class Platform implements DynamicPlatformPlugin {
         this.log.debug('Ignore message, because topic is unexpected.', topic);
         return;
       }
+
+      const deviceConfig = this.devices.find(device => device.sensorTopic === fullTopic);
+
+      if (!deviceConfig) {
+        this.log.debug('Ignore message, because topic is not in the list of devices.', fullTopic);
+        return;
+      }
+
+      let device: PlatformAC | undefined;
+
+      this.registeredDevices.forEach(plat => {
+        this.log.info(`registeredDevices: ${plat.Mac} `);
+        if (plat.Mac === deviceConfig.id) {
+          device = plat;
+        }
+      });
+
+      if (!device) {
+        this.log.debug('Ignore message, because device is not registered.', deviceConfig.id);
+        return;
+      }
+
       const info = JSON.parse(payload.toString());
 
-      this.log.info(`Received MQTT message '${info}'  on topic: {${fullTopic}}`);
+      this.log.info(`Received MQTT message '${payload.toString()}' on topic: ${fullTopic} for device: ${deviceConfig.id}`);
+
+      if (!isMqttSensor(info)) {
+        this.log.error('Ignore message, because payload is not recognised as sensor data.', payload.toString());
+        return;
+      }
+
+      const sensor = info as MqttSensor;
+
+      device.updateProp('currentTemp', '' + sensor.temperature);
 
     } catch (err) {
       this.log.error(`Failed to process MQTT message on '${fullTopic}'. (Maybe check the MQTT version?)`);

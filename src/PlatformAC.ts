@@ -1,12 +1,12 @@
-import { Logger, PlatformAccessory } from "homebridge";
-import { Device } from "gree-ac-api";
+import { Logger, PlatformAccessory } from 'homebridge';
+import { Device } from 'gree-ac-api';
 
-import HeaterCooler from "./services/HeaterCooler";
-import ACContext from "./@types/ACContext";
-import ACLight from "./services/ACLight";
-import ACSpeed from "./services/ACSpeed";
-import { Platform } from "./platform";
-import { EveHistory, HistoryServiceEntry } from "./services/EveHistory";
+import HeaterCooler from './services/HeaterCooler';
+import ACContext from './@types/ACContext';
+import ACLight from './services/ACLight';
+import ACSpeed from './services/ACSpeed';
+import { Platform } from './platform';
+import { EveHistory, HistoryServiceEntry } from './services/EveHistory';
 
 export class PlatformAC {
   private readonly HC: HeaterCooler;
@@ -33,8 +33,8 @@ export class PlatformAC {
   ) {
     this.accessory
       .getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, this.platform.config.manufacturer || "Gree")
-      .setCharacteristic(this.platform.Characteristic.Model, this.platform.config.manufacturer || "Gree")
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, this.platform.config.manufacturer || 'Gree')
+      .setCharacteristic(this.platform.Characteristic.Model, this.platform.config.manufacturer || 'Gree')
       .setCharacteristic(
         this.platform.Characteristic.SerialNumber,
         accessory.context.data.mac
@@ -57,13 +57,13 @@ export class PlatformAC {
         this.log.info(`History: last item: ${JSON.stringify(lastItem)}`);
         this.HC.updateCurrentTemp(lastItem.currentTemp);
       } else {
-        this.log.info("History: no data");
+        this.log.info('History: no data');
       }
     });
   }
 
   public updateProp(propName: string, value: string) {
-    if (propName === "currentTemp") {
+    if (propName === 'currentTemp') {
       const temp = parseFloat(value);
       this.HC.updateCurrentTemp(temp);
       this.history.addEntry({

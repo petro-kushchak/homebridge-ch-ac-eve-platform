@@ -1,9 +1,9 @@
 {
   "private": false,
-  "displayName": "Homebridge Cooper&Hunter (Gree) AC Platform With WebHooks",
+  "displayName": "Homebridge Cooper&Hunter (Gree) AC Platform With WebHooks/MQTT support",
   "name": "@petro-kushchak/homebridge-ch-gree-ac-eve-platform",
-  "version": "1.0.9",
-  "description": "Cooper&Hunter (based on Gree AC API) AC plugin for Homebridge (Homekit) with Web Hook Data Sharing",
+  "version": "1.0.21",
+  "description": "Cooper&Hunter (based on Gree AC API) AC plugin for Homebridge (Homekit) with Web Hook/MQTT Data Sharing",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -28,12 +28,12 @@
     "cooper&hunter ac",
     "homebridge heatercooler",
     "eve",
+    "mqtt",
     "fakegato"
   ],
   "dependencies": {
-    "gree-ac-api": "^1.1.2",
-    "node-fetch": "cjs",
     "fakegato-history": "^0.6.2",
+    "gree-ac-api": "^1.1.2",
     "mqtt": "^5.3.4"
   },
   "resolutions": {
@@ -41,15 +41,17 @@
     "ansi-regex": "^5.0.1"
   },
   "devDependencies": {
-    "@types/node": "^17.0.43",
-    "@types/node-fetch": "^2.6.1",
-    "@typescript-eslint/eslint-plugin": "^5.28.0",
-    "@typescript-eslint/parser": "^5.28.0",
-    "eslint": "^8.17.0",
-    "homebridge": "^1.4.1",
-    "nodemon": "^2.0.16",
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.8.1",
-    "typescript": "^4.7.3"
+    "@types/jest": "^29.5.11",
+    "@types/node": "^22.0.2",
+    "@types/semver": "^7.3.4",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "eslint": "^9.9.0",
+    "homebridge": "^1.7.0",
+    "nodemon": "^3.0.2",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.1.0"
   }
 }
