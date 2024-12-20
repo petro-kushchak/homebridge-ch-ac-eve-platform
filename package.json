@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "Homebridge Cooper&Hunter (Gree) AC Platform With WebHooks/MQTT support",
   "name": "@petro-kushchak/homebridge-ch-gree-ac-eve-platform",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Cooper&Hunter (based on Gree AC API) AC plugin for Homebridge (Homekit) with Web Hook/MQTT Data Sharing",
   "license": "MIT",
   "repository": {
@@ -34,7 +34,8 @@
   "dependencies": {
     "fakegato-history": "^0.6.2",
     "gree-ac-api": "^1.1.2",
-    "mqtt": "^5.3.4"
+    "mqtt": "^5.3.4",
+    "node-fetch": "^3.3.2"
   },
   "resolutions": {
     "minimist": "^1.2.6",

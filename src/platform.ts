@@ -255,6 +255,7 @@ export class Platform implements DynamicPlatformPlugin {
       const sensor = info as MqttSensor;
 
       device.updateProp('currentTemp', '' + sensor.temperature);
+      this.log.info(`Updated device: ${deviceConfig.id} with temperature: ${sensor.temperature}`);
 
     } catch (err) {
       this.log.error(`Failed to process MQTT message on '${fullTopic}'. (Maybe check the MQTT version?)`);
