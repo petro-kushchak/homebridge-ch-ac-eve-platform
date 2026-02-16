@@ -162,6 +162,13 @@
               "type": "string",
               "required": true,
               "placeholder": "zigbee2mqtt/0x00158d0001f0b1d1"
+            },
+            "sensorTemperatureKey": {
+              "title": "MQTT sensor temperature key",
+              "type": "string",
+              "required": false,
+              "placeholder": "temperature",
+              "default": "temperature"
             }
           }
         }

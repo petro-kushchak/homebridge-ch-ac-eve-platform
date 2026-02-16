@@ -47,7 +47,8 @@ This plugin automatically detects Gree AC's and add them as accessories with the
       "devices": [
         {
           "id":"device-id",
-          "sensorTopic": "zigbee2mqtt/0x00158d0001f0b1d1"
+          "sensorTopic": "zigbee2mqtt/0x00158d0001f0b1d1",
+          "sensorTemperatureKey": "temperature"
         }
       ]
     }

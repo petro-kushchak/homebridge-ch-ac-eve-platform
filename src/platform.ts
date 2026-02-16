@@ -247,15 +247,16 @@ export class Platform implements DynamicPlatformPlugin {
 
       this.log.info(`Received MQTT message '${payload.toString()}' on topic: ${fullTopic} for device: ${deviceConfig.id}`);
 
-      if (!isMqttSensor(info)) {
+      if (!isMqttSensor(info, deviceConfig.sensorTemperatureKey || 'temperature')) {
         this.log.error('Ignore message, because payload is not recognised as sensor data.', payload.toString());
         return;
       }
 
       const sensor = info as MqttSensor;
 
-      device.updateProp('currentTemp', '' + sensor.temperature);
-      this.log.info(`Updated device: ${deviceConfig.id} with temperature: ${sensor.temperature}`);
+      const temperature =  !deviceConfig.sensorTemperatureKey? sensor.temperature: '' + sensor[deviceConfig.sensorTemperatureKey];
+      device.updateProp('currentTemp', '' + temperature);
+      this.log.info(`Updated device: ${deviceConfig.id} with temperature: ${temperature}`);
 
     } catch (err) {
       this.log.error(`Failed to process MQTT message on '${fullTopic}'. (Maybe check the MQTT version?)`);

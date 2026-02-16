@@ -18,14 +18,11 @@ export interface PluginConfiguration extends PlatformConfig {
 export interface DeviceConfiguration extends Record<string, unknown> {
     id: string;
     sensorTopic: string;
+    sensorTemperatureKey?: string;
 }
 
 
-export interface MqttSensor {
-    battery: number;
-    humidity: number;
-    last_seen?: string;
-    linkquality?: number;
+export interface MqttSensor extends Record<string, unknown>{
     temperature?: number;
 }
 
@@ -134,8 +131,6 @@ export const isMqttConfiguration = (x: any): x is MqttConfiguration =>
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isMqttSensor = (x: any): x is MqttSensor =>
-    x.temperature !== undefined &&
-    typeof x.temperature === 'number' &&
-    x.humidity !== undefined &&
-    typeof x.humidity === 'number';
+export const isMqttSensor = (x: any, temperatureKey: string): x is MqttSensor =>
+    (x[temperatureKey] !== undefined) &&
+    typeof x[temperatureKey] === 'number';
