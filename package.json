@@ -34,7 +34,7 @@
   "dependencies": {
     "fakegato-history": "^0.6.2",
     "gree-ac-api": "^1.1.2",
-    "mqtt": "^5.3.4",
+    "mqtt": "^5.15.0",
     "node-fetch": "^3.3.2"
   },
   "resolutions": {

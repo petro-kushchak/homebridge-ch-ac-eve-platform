@@ -22,10 +22,8 @@ import { DeviceConfiguration, isMqttSensor, isPluginConfiguration, MqttSensor, P
 import { BasicLogger, errorToString } from './logger';
 
 export class Platform implements DynamicPlatformPlugin {
-  public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic =
-    this.api.hap.Characteristic;
-
+  public readonly Service: typeof Service;
+  public readonly Characteristic: typeof Characteristic;
   public readonly accessories: PlatformAccessory<ACContext>[] = [];
   private readonly registeredDevices: PlatformAC[] = [];
   private httpService?: HttpService;
@@ -40,6 +38,10 @@ export class Platform implements DynamicPlatformPlugin {
     public readonly config: PlatformConfig,
     public readonly api: API
   ) {
+
+    this.Service = api.hap.Service;
+    this.Characteristic = api.hap.Characteristic;
+
     // Validate configuration
     if (isPluginConfiguration(config, this.log)) {
       this.config = config;
@@ -122,9 +124,13 @@ export class Platform implements DynamicPlatformPlugin {
     };
   }
 
-  configureAccessory(accessory: PlatformAccessory<ACContext>) {
+    /**
+     * This function is invoked when homebridge restores cached accessories from disk at startup.
+     * It should be used to set up event handlers for characteristics and update respective values.
+     */
+  configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
-    this.accessories.push(accessory);
+    this.accessories.push(accessory as PlatformAccessory<ACContext>);
   }
 
   private onDeviceFound(device: Device) {
